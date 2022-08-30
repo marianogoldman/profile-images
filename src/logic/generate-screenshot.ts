@@ -51,27 +51,31 @@ export const getScreenshot = async (url: string, viewport: ViewPort, clip?: Clip
 
   const options = await getOptions()
   const browser = await puppeteer.launch(options)
-  const page = await browser.newPage()
-  await page.setViewport({
-    deviceScaleFactor: 2,
-    ...viewport,
-  })
-  timer.openBrowser()
+  try {
+    const page = await browser.newPage()
+    await page.setViewport({
+      deviceScaleFactor: 2,
+      ...viewport,
+    })
+    timer.openBrowser()
 
-  await page.goto(url)
-  timer.goToUrl()
+    await page.goto(url)
+    timer.goToUrl()
 
-  const container = await page.waitForSelector('.is-loaded')
-  timer.waitForReady()
+    const container = await page.waitForSelector('.is-loaded')
+    timer.waitForReady()
 
-  const buffer = await container.screenshot({
-    encoding: 'binary',
-    clip,
-  })
-  timer.takeScreenshot()
+    const buffer = await container.screenshot({
+      encoding: 'binary',
+      clip,
+    })
+    timer.takeScreenshot()
 
-  console.log(timer.timings())
-  return buffer
+    console.log(timer.timings())
+    return buffer
+  } finally {
+    await browser.close()
+  }
 }
 
 const getUrl = (network: Network, type: Type, address: string): string => {
