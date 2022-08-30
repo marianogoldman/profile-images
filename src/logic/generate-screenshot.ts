@@ -1,30 +1,5 @@
-import {Network, Type} from "../types";
-
-const puppeteer = require('puppeteer-core')
-
-/**
- * In order to have the function working in both windows and macOS
- * we need to specify the respective path of the chrome executable for
- * both cases.
- */
-const getExePath = (platform: string) => {
-  switch (platform) {
-    case 'win32':
-      return 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
-    case 'linux':
-      return '/usr/bin/chromium-browser'
-    default:
-      return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-  }
-}
-
-const getOptions = async () => {
-  return {
-    args: ['--no-sandbox'],
-    executablePath: getExePath(process.platform),
-    headless: true,
-  }
-}
+import {AppComponents, Network, Type} from "../types";
+import { Browser } from "puppeteer-core";
 
 export type ViewPort = {
   width: number
@@ -38,21 +13,19 @@ export type Clip = {
   height: number
 }
 
-export const generateScreenshot = async (network: Network, type: Type, address: string) => {
+export const generateScreenshot = async (components: Pick<AppComponents, 'browser'>, network: Network, type: Type, address: string) => {
   const fetchUrl = getUrl(network, type, address)
   const viewport = getViewPort(type)
   const clip = getClip(type)
 
-  return await getScreenshot(fetchUrl, viewport, clip)
+  return await getScreenshot(components.browser, fetchUrl, viewport, clip)
 }
 
-export const getScreenshot = async (url: string, viewport: ViewPort, clip?: Clip) => {
+const getScreenshot = async (browser: Browser, url: string, viewport: ViewPort, clip?: Clip) => {
   const timer = createTimer()
 
-  const options = await getOptions()
-  const browser = await puppeteer.launch(options)
+  const page = await browser.newPage()
   try {
-    const page = await browser.newPage()
     await page.setViewport({
       deviceScaleFactor: 2,
       ...viewport,
@@ -62,8 +35,12 @@ export const getScreenshot = async (url: string, viewport: ViewPort, clip?: Clip
     await page.goto(url)
     timer.goToUrl()
 
-    const container = await page.waitForSelector('.is-loaded')
+    const container = await page.waitForSelector('.is-loaded', { timeout: 30_000 })
     timer.waitForReady()
+
+    if (!container) {
+      throw new Error("Timeout waiting for profile to render.")
+    }
 
     const buffer = await container.screenshot({
       encoding: 'binary',
@@ -74,7 +51,7 @@ export const getScreenshot = async (url: string, viewport: ViewPort, clip?: Clip
     console.log(timer.timings())
     return buffer
   } finally {
-    await browser.close()
+    await page.close()
   }
 }
 

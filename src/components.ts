@@ -5,6 +5,7 @@ import { createFetchComponent } from "./adapters/fetch"
 import { createMetricsComponent } from "@well-known-components/metrics"
 import { AppComponents, GlobalContext } from "./types"
 import { metricDeclarations } from "./metrics"
+import { createBrowserComponent } from "./adapters/browser";
 
 // Initialize all the components of the app
 export async function initComponents(): Promise<AppComponents> {
@@ -15,6 +16,7 @@ export async function initComponents(): Promise<AppComponents> {
   const statusChecks = await createStatusCheckComponent({ server, config })
   const fetch = await createFetchComponent()
   const metrics = await createMetricsComponent(metricDeclarations, { server, config })
+  const browser = await createBrowserComponent()
 
   return {
     config,
@@ -23,5 +25,6 @@ export async function initComponents(): Promise<AppComponents> {
     statusChecks,
     fetch,
     metrics,
+    browser,
   }
 }

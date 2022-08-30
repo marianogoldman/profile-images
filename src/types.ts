@@ -7,6 +7,7 @@ import type {
   IMetricsComponent,
 } from "@well-known-components/interfaces"
 import { metricDeclarations } from "./metrics"
+import { Browser } from "puppeteer-core";
 
 export type GlobalContext = {
   components: BaseComponents
@@ -18,7 +19,8 @@ export type BaseComponents = {
   logs: ILoggerComponent
   server: IHttpServerComponent<GlobalContext>
   fetch: IFetchComponent
-  metrics: IMetricsComponent<keyof typeof metricDeclarations>
+  metrics: IMetricsComponent<keyof typeof metricDeclarations>,
+  browser: Browser
 }
 
 // components used in runtime
