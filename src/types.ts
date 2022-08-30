@@ -44,3 +44,13 @@ export type HandlerContextWithPath<
 >
 
 export type Context<Path extends string = any> = IHttpServerComponent.PathAwareContext<GlobalContext, Path>
+
+export enum Network {
+  MAINNET = 'mainnet',
+  GOERLI = 'goerli',
+}
+
+export enum Type {
+  FACE = 'face',
+  BODY = 'body',
+}
