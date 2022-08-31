@@ -27,29 +27,29 @@ const getScreenshot = async (browser: Browser, url: string, viewport: ViewPort, 
 
   const page = await browser.newPage()
 
-  // attach cdp session to page
-  const client = await page.target().createCDPSession();
-  await client.send('Debugger.enable');
-  await client.send('Debugger.setAsyncCallStackDepth', { maxDepth: 32 });
-
-  function limit (string = '', limit = 0) {
-    return string.substring(0, limit)
-  }
-
-  // enable network
-  await client.send('Network.enable');
-  // attach callback to network response event
-    await client.on('Network.responseReceived', (params) => {
-    const { type, response: { url, status, fromDiskCache } } = params;
-    /*
-     * See: https://chromedevtools.github.io/devtools-protocol
-     * /tot/Network/#type-ResourceTiming for complete list of
-     * timing data available under 'timing'
-     */
-    console.log({
-      type, url: limit(url, 100), status, fromDiskCache
-    })
-  });
+  // // attach cdp session to page
+  // const client = await page.target().createCDPSession();
+  // await client.send('Debugger.enable');
+  // await client.send('Debugger.setAsyncCallStackDepth', { maxDepth: 32 });
+  //
+  // function limit (string = '', limit = 0) {
+  //   return string.substring(0, limit)
+  // }
+  //
+  // // enable network
+  // await client.send('Network.enable');
+  // // attach callback to network response event
+  //   await client.on('Network.responseReceived', (params) => {
+  //   const { type, response: { url, status, fromDiskCache } } = params;
+  //   /*
+  //    * See: https://chromedevtools.github.io/devtools-protocol
+  //    * /tot/Network/#type-ResourceTiming for complete list of
+  //    * timing data available under 'timing'
+  //    */
+  //   console.log({
+  //     type, url: limit(url, 100), status, fromDiskCache
+  //   })
+  // });
 
   try {
     await page.setViewport({
