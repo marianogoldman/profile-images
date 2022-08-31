@@ -4,7 +4,7 @@ import { generateScreenshot } from "../../logic/generate-screenshot";
 import IResponse = IHttpServerComponent.IResponse;
 
 export function createScreenshotHandler(network: Network, type: Type) {
-  return async (context: Pick<HandlerContextWithPath<"metrics" | "fetch" | "browser", "/mainnet/face/:address/:hash">, "url" | "components" | "params">): Promise<IResponse> => {
+  return async (context: Pick<HandlerContextWithPath<"metrics" | "config" | "fetch" | "browser", "/mainnet/face/:address/:hash">, "url" | "components" | "params">): Promise<IResponse> => {
     const {address, hash} = context.params
     if (!address) {
       return {

@@ -4,7 +4,7 @@ import { IHttpServerComponent } from "@well-known-components/interfaces";
 import IResponse = IHttpServerComponent.IResponse;
 
 export function createRedirectHandler(network: Network, type: Type) {
-  return async (context: Pick<HandlerContextWithPath<"metrics" | "fetch", "/mainnet/face/:address">, "url" | "components" | "params">): Promise<IResponse> => {
+  return async (context: Pick<HandlerContextWithPath<"metrics" | "config" | "fetch", "/mainnet/face/:address">, "url" | "components" | "params">): Promise<IResponse> => {
     const { address } = context.params
     if (!address) {
       return {

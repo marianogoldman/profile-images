@@ -1,22 +1,12 @@
-import {AppComponents, Network, Type} from "../types";
+import { AppComponents, Network, Type } from "../types";
+import { IConfigComponent } from "@well-known-components/interfaces";
 
-export async function generateRedirect(components: Pick<AppComponents, "fetch">, network: Network, type: Type, address: string): Promise<string> {
-  let peer: string
-  switch (network) {
-    case 'mainnet': {
-      peer = 'https://peer.decentraland.org'
-      break
-    }
-    case 'goerli': {
-      peer = 'https://peer.decentraland.zone'
-      break
-    }
-    default: {
-      throw new Error("Invalid network")
-    }
-  }
+export async function generateRedirect(components: Pick<AppComponents, "config" | "fetch">, network: Network, type: Type, address: string): Promise<string> {
+  const { config, fetch } = components
 
-  const resp = await components.fetch.fetch(`${peer}/content/entities/profile?pointer=${address}`)
+  const peer = await getPeer(config, network)
+
+  const resp = await fetch.fetch(`${peer}/content/entities/profile?pointer=${address}`)
   if (!resp.ok) {
     throw new Error(`Could not fetch profile entity for address="${address}"`)
   } else {
@@ -30,5 +20,19 @@ export async function generateRedirect(components: Pick<AppComponents, "fetch">,
     }
 
     return `/${network}/${type}/${address}/${id}`
+  }
+}
+
+const getPeer = async (config: IConfigComponent, network: Network): Promise<string> => {
+  switch (network) {
+    case Network.MAINNET: {
+      return await config.getString("CATALYST_MAINNET") || 'https://peer.decentraland.org'
+    }
+    case Network.GOERLI: {
+      return await config.getString("CATALYST_GOERLI") || 'https://peer.decentraland.zone'
+    }
+    default: {
+      throw new Error("Invalid network")
+    }
   }
 }

@@ -1,5 +1,6 @@
 import {AppComponents, Network, Type} from "../types";
 import { Browser } from "puppeteer-core";
+import {IConfigComponent} from "@well-known-components/interfaces";
 
 export type ViewPort = {
   width: number
@@ -13,8 +14,8 @@ export type Clip = {
   height: number
 }
 
-export const generateScreenshot = async (components: Pick<AppComponents, 'browser'>, network: Network, type: Type, address: string) => {
-  const fetchUrl = getUrl(network, type, address)
+export const generateScreenshot = async (components: Pick<AppComponents, 'browser' | 'config'>, network: Network, type: Type, address: string) => {
+  const fetchUrl = await getUrl(components.config, network, type, address)
   const viewport = getViewPort(type)
   const clip = getClip(type)
 
@@ -25,6 +26,31 @@ const getScreenshot = async (browser: Browser, url: string, viewport: ViewPort, 
   const timer = createTimer()
 
   const page = await browser.newPage()
+
+  // attach cdp session to page
+  const client = await page.target().createCDPSession();
+  await client.send('Debugger.enable');
+  await client.send('Debugger.setAsyncCallStackDepth', { maxDepth: 32 });
+
+  function limit (string = '', limit = 0) {
+    return string.substring(0, limit)
+  }
+
+  // enable network
+  await client.send('Network.enable');
+  // attach callback to network response event
+    await client.on('Network.responseReceived', (params) => {
+    const { type, response: { url, status, fromDiskCache } } = params;
+    /*
+     * See: https://chromedevtools.github.io/devtools-protocol
+     * /tot/Network/#type-ResourceTiming for complete list of
+     * timing data available under 'timing'
+     */
+    console.log({
+      type, url: limit(url, 100), status, fromDiskCache
+    })
+  });
+
   try {
     await page.setViewport({
       deviceScaleFactor: 2,
@@ -55,8 +81,9 @@ const getScreenshot = async (browser: Browser, url: string, viewport: ViewPort, 
   }
 }
 
-const getUrl = (network: Network, type: Type, address: string): string => {
-  const url = new URL("https://wearable-preview.decentraland.org")
+const getUrl = async (config: IConfigComponent, network: Network, type: Type, address: string): Promise<string> => {
+  const baseUrl = await config.getString("WEARABLES_PREVIEW_URL") || "https://wearable-preview.decentraland.org"
+  const url = new URL(baseUrl)
   url.searchParams.append('profile', address)
   url.searchParams.append('transparentBackground', '')
   url.searchParams.append('autoRotateSpeed', '0')
