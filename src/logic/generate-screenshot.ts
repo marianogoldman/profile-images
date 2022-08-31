@@ -85,7 +85,7 @@ const getUrl = async (config: IConfigComponent, network: Network, type: Type, ad
   const baseUrl = await config.getString("WEARABLES_PREVIEW_URL") || "https://wearable-preview.decentraland.org"
   const url = new URL(baseUrl)
   url.searchParams.append('profile', address)
-  url.searchParams.append('transparentBackground', '')
+  url.searchParams.append('disableBackground', '')
   url.searchParams.append('autoRotateSpeed', '0')
 
   if (type === Type.FACE) {
