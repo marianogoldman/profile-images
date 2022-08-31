@@ -8,6 +8,26 @@ WORKDIR /app
 RUN apt-get update
 RUN apt-get -y -qq install python-setuptools python-dev build-essential
 
+# specific for Chromium
+RUN apt-get install -y wget gnupg
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+RUN apt-get update
+RUN apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
+      --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm init -y &&  \
+    npm i puppeteer \
+    # Add user so we don't need --no-sandbox.
+    # same layer as npm install to keep re-chowned files from using up several hundred MBs more space
+    && groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+    && mkdir -p /home/pptruser/Downloads \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && chown -R pptruser:pptruser /app/node_modules \
+    && chown -R pptruser:pptruser /app/package.json \
+    && chown -R pptruser:pptruser /app/package-lock.json
+
 # We use Tini to handle signals and PID1 (https://github.com/krallin/tini, read why here https://github.com/krallin/tini/issues/8)
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
@@ -16,11 +36,13 @@ RUN chmod +x /tini
 # install dependencies
 COPY package.json /app/package.json
 COPY yarn.lock /app/yarn.lock
+RUN rm /app/package-lock.json
 RUN yarn
 
 # build the app
 COPY . /app
 RUN yarn build
+#RUN npx browserslist@latest --update-db
 RUN yarn test
 
 # remove devDependencies, keep only used dependencies

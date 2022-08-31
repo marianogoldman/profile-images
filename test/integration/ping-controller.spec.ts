@@ -7,7 +7,7 @@ test("integration sanity tests using a real server backend", function ({ compone
     const r = await localFetch.fetch("/preview/index.html")
 
     expect(r.status).toEqual(200)
-    expect(await r.text()).toEqual("/ping")
+    expect(await r.text()).toContain("Decentraland | Wearable Preview")
   })
 
   it("calling /ping increments a metric", async () => {
