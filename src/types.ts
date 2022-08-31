@@ -7,7 +7,7 @@ import type {
   IMetricsComponent,
 } from "@well-known-components/interfaces"
 import { metricDeclarations } from "./metrics"
-import { Browser } from "puppeteer-core";
+import { Browser } from "puppeteer";
 
 export type GlobalContext = {
   components: BaseComponents

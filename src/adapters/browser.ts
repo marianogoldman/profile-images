@@ -1,4 +1,4 @@
-import { launch } from "puppeteer-core";
+const puppeteer = require("puppeteer");
 
 /**
  * In order to have the function working in both windows and macOS
@@ -25,6 +25,6 @@ const getOptions = async () => {
 }
 
 export async function createBrowserComponent() {
-  const options = await getOptions()
-  return await launch(options)
+  // const options = await getOptions()
+  return await puppeteer.launch()
 }

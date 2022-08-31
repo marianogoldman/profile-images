@@ -1,5 +1,5 @@
 import {AppComponents, Network, Type} from "../types";
-import { Browser } from "puppeteer-core";
+import { Browser } from "puppeteer";
 import {IConfigComponent} from "@well-known-components/interfaces";
 
 export type ViewPort = {
