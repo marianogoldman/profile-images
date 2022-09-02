@@ -74,7 +74,10 @@ const getScreenshot = async (browser: Browser, url: string, viewport: ViewPort, 
     })
     timer.takeScreenshot()
 
+    let performance = JSON.parse(await page.evaluate(() => JSON.stringify(performance.getEntries(), undefined, 2)));
+    console.log(performance.map((p: any) => ({type: p.entryType, name: p.name, duration:p.duration})))
     console.log(timer.timings())
+
     return buffer
   } finally {
     await page.close()
