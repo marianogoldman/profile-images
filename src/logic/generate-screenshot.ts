@@ -48,9 +48,28 @@ export const generateScreenshots = async (
   //   })
   // });
 
+  const url = await getUrl(components.config, network, Type.BODY, address)
+  await page.goto(url)
   try {
-    const body = await capture(page, components.config, network, Type.BODY, address)
-    const face = await capture(page, components.config, network, Type.FACE, address)
+    const body = await capture(page, components.config, network, Type.BODY)
+
+    await page.evaluate(() =>
+      window.postMessage({
+        type: "update",
+        payload: {
+          options: {
+            profile: new URLSearchParams(window.location.search).get("profile"),
+            zoom: (70 * 1.8) / 100 + 1, // zoom factor: 70
+            offsetY: 1.3,
+            disableBackground: true,
+            disableAutoRotate: true, // autoRotateSpeed esta deprecado, ahora es asi
+            disableAutoCenter: true, // centerBoundingBox esta deprecado, ahora es asi
+          },
+        },
+      })
+    )
+
+    const face = await capture(page, components.config, network, Type.FACE)
     return {
       body,
       face,
@@ -60,14 +79,7 @@ export const generateScreenshots = async (
   }
 }
 
-async function capture(
-  page: Page,
-  config: IConfigComponent,
-  network: Network,
-  type: Type,
-  address: string
-): Promise<Buffer.Buffer> {
-  const url = await getUrl(config, network, type, address)
+async function capture(page: Page, config: IConfigComponent, network: Network, type: Type): Promise<Buffer.Buffer> {
   const viewport = getViewPort(type)
   const clip = getClip(type)
 
@@ -76,9 +88,6 @@ async function capture(
     deviceScaleFactor: 2,
     ...viewport,
   })
-  timer.openBrowser()
-
-  await page.goto(url)
   timer.goToUrl()
 
   const container = await page.waitForSelector(".is-loaded", { timeout: 30_000 })
@@ -88,6 +97,7 @@ async function capture(
     throw new Error("Timeout waiting for profile to render.")
   }
 
+  await new Promise((resolve) => setTimeout(resolve, 300))
   const buffer = await container.screenshot({
     encoding: "binary",
     clip,
@@ -106,13 +116,13 @@ const getUrl = async (config: IConfigComponent, network: Network, type: Type, ad
   const baseUrl = (await config.getString("WEARABLES_PREVIEW_URL")) || "https://wearable-preview.decentraland.org"
   const url = new URL(baseUrl)
   url.searchParams.append("profile", address)
-  url.searchParams.append("disableBackground", "")
-  url.searchParams.append("autoRotateSpeed", "0")
+  url.searchParams.append("disableBackground", "true")
+  url.searchParams.append("disableAutoRotate", "true")
 
   if (type === Type.FACE) {
     url.searchParams.append("zoom", "70")
     url.searchParams.append("offsetY", "1.3")
-    url.searchParams.append("centerBoundingBox", "false")
+    url.searchParams.append("disableAutoCenter", "true")
   }
 
   if (network === Network.GOERLI) {
@@ -140,7 +150,6 @@ const getClip = (type: Type): Clip | undefined => {
 }
 
 type Timings = {
-  openBrowser: number
   goToUrl: number
   waitForReady: number
   takeScreenshot: number
@@ -148,7 +157,6 @@ type Timings = {
 }
 
 type Timer = {
-  openBrowser: () => void
   goToUrl: () => void
   waitForReady: () => void
   takeScreenshot: () => void
@@ -162,14 +170,9 @@ export type Screenshots = {
 
 const createTimer = (): Timer => {
   const startMs = new Date().getTime()
-  let openBrowserMs = 0
   let goToUrlMs = 0
   let waitForReadyMs = 0
   let takeScreenshotMs = 0
-
-  const openBrowser = () => {
-    openBrowserMs = new Date().getTime()
-  }
 
   const goToUrl = () => {
     goToUrlMs = new Date().getTime()
@@ -185,16 +188,14 @@ const createTimer = (): Timer => {
 
   const timings = () => {
     return {
-      openBrowser: openBrowserMs - startMs,
-      goToUrl: goToUrlMs - openBrowserMs,
-      waitForReady: waitForReadyMs - openBrowserMs,
+      goToUrl: goToUrlMs - startMs,
+      waitForReady: waitForReadyMs - goToUrlMs,
       takeScreenshot: takeScreenshotMs - waitForReadyMs,
       total: takeScreenshotMs - startMs,
     }
   }
 
   return {
-    openBrowser,
     goToUrl,
     waitForReady,
     takeScreenshot,
