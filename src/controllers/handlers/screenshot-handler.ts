@@ -8,7 +8,7 @@ import IResponse = IHttpServerComponent.IResponse
 export function createScreenshotHandler(network: Network, type: Type) {
   return async (
     context: Pick<
-      HandlerContextWithPath<"metrics" | "config" | "fetch" | "browser", "/mainnet/face/:address/:hash">,
+      HandlerContextWithPath<"metrics" | "config" | "fetch" | "browser", "/api/mainnet/face/:address/:hash">,
       "url" | "components" | "params"
     >
   ): Promise<IResponse> => {

@@ -1,5 +1,5 @@
 import { AppComponents, Network, Type } from "../types";
-import { IConfigComponent } from "@well-known-components/interfaces";
+import { getPeer } from "./utils";
 
 export async function generateRedirect(components: Pick<AppComponents, "config" | "fetch">, network: Network, type: Type, address: string): Promise<string> {
   const { config, fetch } = components
@@ -20,19 +20,5 @@ export async function generateRedirect(components: Pick<AppComponents, "config" 
     }
 
     return `/${network}/${type}/${address}/${id}`
-  }
-}
-
-const getPeer = async (config: IConfigComponent, network: Network): Promise<string> => {
-  switch (network) {
-    case Network.MAINNET: {
-      return await config.getString("CATALYST_MAINNET") || 'https://peer.decentraland.org'
-    }
-    case Network.GOERLI: {
-      return await config.getString("CATALYST_GOERLI") || 'https://peer.decentraland.zone'
-    }
-    default: {
-      throw new Error("Invalid network")
-    }
   }
 }

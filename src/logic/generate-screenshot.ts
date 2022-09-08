@@ -2,6 +2,7 @@ import { AppComponents, Network, Type } from "../types"
 import { Page } from "puppeteer"
 import { IConfigComponent } from "@well-known-components/interfaces"
 import * as Buffer from "buffer"
+import { getPeer } from "./utils";
 
 export type ViewPort = {
   width: number
@@ -114,10 +115,14 @@ async function capture(page: Page, config: IConfigComponent, network: Network, t
 
 const getUrl = async (config: IConfigComponent, network: Network, type: Type, address: string): Promise<string> => {
   const baseUrl = (await config.getString("WEARABLES_PREVIEW_URL")) || "https://wearable-preview.decentraland.org"
+  const peer = await getPeer(config, network)
+
   const url = new URL(baseUrl)
   url.searchParams.append("profile", address)
   url.searchParams.append("disableBackground", "true")
   url.searchParams.append("disableAutoRotate", "true")
+  url.searchParams.append("disableFadeEffect", "true")
+  url.searchParams.append("peerUrl", peer)
 
   if (type === Type.FACE) {
     url.searchParams.append("zoom", "70")

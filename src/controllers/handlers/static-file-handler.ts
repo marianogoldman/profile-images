@@ -1,18 +1,14 @@
 import {HandlerContextWithPath} from "../../types";
 import {IHttpServerComponent} from "@well-known-components/interfaces";
 import * as fs from "fs";
+import * as path from "path";
 import IResponse = IHttpServerComponent.IResponse;
 
-export async function staticFileHandler(context: Pick<HandlerContextWithPath<"metrics" | "config" | "fetch", "/preview">, "url" | "components" | "params">): Promise<IResponse> {
+export async function staticFileHandler(context: Pick<HandlerContextWithPath<"metrics" | "config" | "fetch", "/:file">, "url" | "components" | "params">): Promise<IResponse> {
   const { url } = context
+  const thePath = path.join('node_modules/@dcl/wearable-preview/static-local', url.pathname);
 
-  function extractFile(path: string, pathPrefix: string ) {
-    return path.substring(path.indexOf(pathPrefix) + pathPrefix.length)
-  }
-
-  const index = extractFile(url.pathname,'preview/')
-
-  if (!fs.existsSync(`node_modules/@dcl/wearable-preview/${index}`)) {
+  if (!fs.existsSync(thePath)) {
     return {
       status: 404,
       body: `Not found`
@@ -21,6 +17,6 @@ export async function staticFileHandler(context: Pick<HandlerContextWithPath<"me
 
   return {
     status: 200,
-    body: fs.readFileSync(`node_modules/@dcl/wearable-preview/${index}`)
+    body: fs.readFileSync(thePath)
   }
 }
