@@ -8,11 +8,12 @@ import IResponse = IHttpServerComponent.IResponse
 export function createScreenshotHandler(network: Network, type: Type) {
   return async (
     context: Pick<
-      HandlerContextWithPath<"metrics" | "config" | "fetch" | "browser", "/api/mainnet/face/:address/:hash">,
+      HandlerContextWithPath<"metrics" | "config" | "fetch" | "browser" | "logs", "/api/mainnet/face/:address/:hash">,
       "url" | "components" | "params"
     >
   ): Promise<IResponse> => {
-    const { address, hash } = context.params
+    const { url, components: { metrics}, params: { address, hash} } = context
+
     if (!address) {
       return {
         status: 400,
@@ -27,11 +28,7 @@ export function createScreenshotHandler(network: Network, type: Type) {
       }
     }
 
-    const {
-      url,
-      components: { metrics },
-    } = context
-
+    // TODO remove this metric, perhaps change it for timer
     metrics.increment("screenshot_handler", {
       pathname: url.pathname,
     })

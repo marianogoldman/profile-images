@@ -15,8 +15,9 @@ export type Clip = {
   width: number
   height: number
 }
+
 export const generateScreenshots = async (
-  components: Pick<AppComponents, "browser" | "config">,
+  components: Pick<AppComponents, "browser" | "config" | "logs">,
   network: Network,
   address: string
 ): Promise<Screenshots> => {
@@ -52,7 +53,7 @@ export const generateScreenshots = async (
   const url = await getUrl(components.config, network, Type.BODY, address)
   await page.goto(url)
   try {
-    const body = await capture(page, components.config, network, Type.BODY)
+    const body = await capture(components, page, network, Type.BODY)
 
     await page.evaluate(() =>
       window.postMessage({
@@ -65,26 +66,32 @@ export const generateScreenshots = async (
             disableBackground: true,
             disableAutoRotate: true, // autoRotateSpeed esta deprecado, ahora es asi
             disableAutoCenter: true, // centerBoundingBox esta deprecado, ahora es asi
+            disableFadeEffect: true,
+            peerUrl: new URLSearchParams(window.location.search).get("peerUrl"),
           },
         },
       })
     )
 
-    const face = await capture(page, components.config, network, Type.FACE)
+    const face = await capture(components, page, network, Type.FACE)
+
     return {
       body,
       face,
     }
+  } catch (_) {
+    components.logs.getLogger('generate-screenshots').error(await page.content())
+    throw _
   } finally {
     await page.close()
   }
 }
 
-async function capture(page: Page, config: IConfigComponent, network: Network, type: Type): Promise<Buffer.Buffer> {
+async function capture(components: Pick<AppComponents, "logs">, page: Page, network: Network, type: Type): Promise<Buffer.Buffer> {
   const viewport = getViewPort(type)
   const clip = getClip(type)
 
-  const timer = createTimer()
+  const timer = createTimer(type)
   await page.setViewport({
     deviceScaleFactor: 2,
     ...viewport,
@@ -98,7 +105,6 @@ async function capture(page: Page, config: IConfigComponent, network: Network, t
     throw new Error("Timeout waiting for profile to render.")
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 300))
   const buffer = await container.screenshot({
     encoding: "binary",
     clip,
@@ -106,8 +112,9 @@ async function capture(page: Page, config: IConfigComponent, network: Network, t
   timer.takeScreenshot()
 
   // let performance = JSON.parse(await page.evaluate(() => JSON.stringify(performance.getEntries(), undefined, 2)));
-  // console.log(performance.map((p: any) => ({type: p.entryType, name: p.name, duration: p.duration})))
+  // console.log(performance.map((p: any) => ({ type: p.entryType, name: p.name, duration: p.duration })))
   console.log(timer.timings())
+  components.logs.getLogger('generate-screenshots').info("timings", timer.timings())
 
   // @ts-ignore
   return buffer
@@ -173,7 +180,7 @@ export type Screenshots = {
   face: Buffer.Buffer
 }
 
-const createTimer = (): Timer => {
+const createTimer = (name: string): Timer => {
   const startMs = new Date().getTime()
   let goToUrlMs = 0
   let waitForReadyMs = 0
@@ -193,6 +200,7 @@ const createTimer = (): Timer => {
 
   const timings = () => {
     return {
+      name: name,
       goToUrl: goToUrlMs - startMs,
       waitForReady: waitForReadyMs - goToUrlMs,
       takeScreenshot: takeScreenshotMs - waitForReadyMs,
