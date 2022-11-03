@@ -294,10 +294,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@dcl/wearable-preview@^1.9.0":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@dcl/wearable-preview/-/wearable-preview-1.9.0.tgz#7147fe19c0c55dc068d8e2bee2ffe0768d0d8945"
-  integrity sha512-sznjhY06UzoJ4aMAVgHLKbmt99vIJesKV1nNHFFQ05J3iNyli2OHhSzwRos3hRZNKABkfrWLGkcwbdeUt/79CA==
+"@dcl/wearable-preview@^1.15.1":
+  version "1.15.1"
+  resolved "https://registry.yarnpkg.com/@dcl/wearable-preview/-/wearable-preview-1.15.1.tgz#e3eae29a04495b6e433bb0cd97ab686715627558"
+  integrity sha512-pbfnHq1qNjFf5nxFAI2TZwLRjeDePa7jjEzJrjvzcGiiMZP1IPF2gsrYp0Eu47Z9aeFEg5EfBxHpV/Sq77Bdkg==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
